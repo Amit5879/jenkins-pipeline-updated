@@ -1,5 +1,6 @@
 pipeline {
     agent any
+    }
     stages {
         // Stage 1: Build - Compile the code and generate artifacts
         stage('Build') {
@@ -12,17 +13,21 @@ pipeline {
         // Stage 2: Test - Run unit and integration tests
         stage('Test') {
             steps {
-                echo 'Running unit tests using JUnit'
-                echo 'Running integration tests using NUnit'
+                script {
+                    // Capture test output to a file
+                    def testOutput = sh(script: 'your-test-command-here', returnStdout: true)
+                    writeFile file: 'test-log.txt', text: testOutput
+                    archiveArtifacts artifacts: 'test-log.txt'
+                }
             }
             post {
                 always {
                     emailext(
                         to: "amitkafe5@gmail.com",
                         subject: "Test Stage: Completed",
-                        body: "The Test stage has completed. Please find the attached logs for details.",
-                        attachLog: true,
-                        compressLog: true
+                        body: """The Test stage has completed. 
+                        You can download the logs from the following link: 
+                        ${env.BUILD_URL}artifact/test-log.txt"""
                     )
                 }
             }
@@ -31,23 +36,42 @@ pipeline {
         // Stage 3: Code Quality Check - Check the quality of the code
         stage('Code Quality Check') {
             steps {
-                echo 'Checking the quality of the code using Sonar'
+                script {
+                    def qualityOutput = sh(script: 'your-quality-check-command-here', returnStdout: true)
+                    writeFile file: 'quality-log.txt', text: qualityOutput
+                    archiveArtifacts artifacts: 'quality-log.txt'
+                }
+            }
+            post {
+                always {
+                    emailext(
+                        to: "amitkafe5@gmail.com",
+                        subject: "Code Quality Check: Completed",
+                        body: """The Code Quality Check has completed. 
+                        You can download the logs from the following link: 
+                        ${env.BUILD_URL}artifact/quality-log.txt"""
+                    )
+                }
             }
         }
 
         // Stage 4: Security Scan - Run security scans
         stage('Security Scan') {
             steps {
-                echo 'Running security scans'
+                script {
+                    def securityOutput = sh(script: 'your-security-scan-command-here', returnStdout: true)
+                    writeFile file: 'security-log.txt', text: securityOutput
+                    archiveArtifacts artifacts: 'security-log.txt'
+                }
             }
             post {
                 always {
                     emailext(
                         to: "amitkafe5@gmail.com",
-                        subject: "Security Scan Stage: Completed",
-                        body: "The Security Scan stage has completed. Please find the attached logs for details.",
-                        attachLog: true,
-                        compressLog: true
+                        subject: "Security Scan: Completed",
+                        body: """The Security Scan has completed. 
+                        You can download the logs from the following link: 
+                        ${env.BUILD_URL}artifact/security-log.txt"""
                     )
                 }
             }
@@ -75,15 +99,15 @@ pipeline {
         }
     }
 
-    // Post actions: Send final status emails with logs attached, always
+    // Post actions: Send final status emails with logs archived
     post {
         always {
             emailext(
                 to: "amitkafe5@gmail.com",
-                subject: "Pipeline Execution Status",
-                body: "The entire pipeline execution has completed. Please find the attached logs for details.",
-                attachLog: true,
-                compressLog: true
+                subject: "Build Status: ${currentBuild.currentResult}",
+                body: """The pipeline execution has completed with status: ${currentBuild.currentResult}. 
+                You can download the build logs from the following link: 
+                ${env.BUILD_URL}artifact/"""
             )
         }
     }
