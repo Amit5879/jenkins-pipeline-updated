@@ -1,114 +1,66 @@
 pipeline {
     agent any
-    }
     stages {
-        // Stage 1: Build - Compile the code and generate artifacts
         stage('Build') {
             steps {
-                echo "Fetch the source code from the directory path: ${env.DIRECTORY_PATH}"
-                echo "Compile the code and generate any necessary artifacts"
+                echo "Use Maven to automatically compile and package code..."
             }
         }
-
-        // Stage 2: Test - Run unit and integration tests
-        stage('Test') {
+        stage('Unit and Integration testing') {
             steps {
-                script {
-                    // Capture test output to a file
-                    def testOutput = sh(script: 'your-test-command-here', returnStdout: true)
-                    writeFile file: 'test-log.txt', text: testOutput
-                    archiveArtifacts artifacts: 'test-log.txt'
-                }
+                echo "Running unit testing using JUnit..."
+                echo "Running integration tests using Selenium..."
             }
             post {
                 always {
                     emailext(
                         to: "amitkafe5@gmail.com",
-                        subject: "Test Stage: Completed",
-                        body: """The Test stage has completed. 
-                        You can download the logs from the following link: 
-                        ${env.BUILD_URL}artifact/test-log.txt"""
+                        subject: "Unit and Integration testing: Success",
+                        body: "<p>Stage 'Unit and Integration Tests' completed with status ${currentBuild.result}</p><p>Check console output at ${env.BUILD_URL} to view the result.</p>",
+                        attachLog: true
                     )
                 }
             }
         }
-
-        // Stage 3: Code Quality Check - Check the quality of the code
-        stage('Code Quality Check') {
+        stage('Code Analysis') {
             steps {
-                script {
-                    def qualityOutput = sh(script: 'your-quality-check-command-here', returnStdout: true)
-                    writeFile file: 'quality-log.txt', text: qualityOutput
-                    archiveArtifacts artifacts: 'quality-log.txt'
-                }
-            }
-            post {
-                always {
-                    emailext(
-                        to: "amitkafe5@gmail.com",
-                        subject: "Code Quality Check: Completed",
-                        body: """The Code Quality Check has completed. 
-                        You can download the logs from the following link: 
-                        ${env.BUILD_URL}artifact/quality-log.txt"""
-                    )
-                }
+                echo "Running SonarQube scanner..."
+                echo "Analyzing code..."
             }
         }
-
-        // Stage 4: Security Scan - Run security scans
         stage('Security Scan') {
             steps {
-                script {
-                    def securityOutput = sh(script: 'your-security-scan-command-here', returnStdout: true)
-                    writeFile file: 'security-log.txt', text: securityOutput
-                    archiveArtifacts artifacts: 'security-log.txt'
-                }
+                echo "Run OWASP Dependency-Check to perform security scan..."
             }
             post {
                 always {
                     emailext(
                         to: "amitkafe5@gmail.com",
-                        subject: "Security Scan: Completed",
-                        body: """The Security Scan has completed. 
-                        You can download the logs from the following link: 
-                        ${env.BUILD_URL}artifact/security-log.txt"""
+                        subject: "Security scan successful",
+                        body: "<p>Stage 'Security Scan' completed with status ${currentBuild.result}</p><p>Check console output at ${env.BUILD_URL} to view the result.</p>",
+                        attachLog: true
                     )
                 }
             }
         }
-
-        // Stage 5: Deploy to Testing - Deploy the application to the testing environment
-        stage('Deploy') {
+        stage('Deploy to staging') {
             steps {
-                echo "Deploy the application to the testing environment: ${env.TESTING_ENVIRONMENT}"
+                echo "Using AWS CodeDeploy to deploy to staging..."
+                echo "Deploying the application to staging server: SLB TYA..."
             }
         }
-
-        // Stage 6: Approval - Manual approval before deploying to production
-        stage('Approval') {
+        stage('Integration Tests on staging') {
             steps {
-                echo 'Waiting for manual approval...'
+                echo "Executing integration tests using Selenium..."
+                echo "mvn test -Dtest=IntegrationTest..."
             }
         }
-
-        // Stage 7: Deploy to Production - Deploy the application to production
-        stage('Deploy to Production') {
+        stage('Deploy to production') {
             steps {
-                echo "Deploying the code to the production environment: ${env.PRODUCTION_ENVIRONMENT}"
+                echo "Using AWS CodeDeploy to deploy the application to production..."
+                echo "aws deploy create-deployment..."
+                echo "application-name <SIT223 Amit Kafe>..."
             }
-        }
-    }
-
-    // Post actions: Send final status emails with logs archived
-    post {
-        always {
-            emailext(
-                to: "amitkafe5@gmail.com",
-                subject: "Build Status: ${currentBuild.currentResult}",
-                body: """The pipeline execution has completed with status: ${currentBuild.currentResult}. 
-                You can download the build logs from the following link: 
-                ${env.BUILD_URL}artifact/"""
-            )
         }
     }
 }
