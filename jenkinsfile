@@ -14,7 +14,7 @@ pipeline {
             post {
                 always {
                     emailext(
-                        to: "amitkafe5@gmail.com",
+                        to: "amit.kafe5987@gmail.com",
                         subject: "Unit and Integration testing: Success",
                         body: "<p>Stage 'Unit and Integration Tests' completed with status ${currentBuild.result}</p><p>Check console output at ${env.BUILD_URL} to view the result.</p>",
                         attachLog: true
@@ -35,7 +35,7 @@ pipeline {
             post {
                 always {
                     emailext(
-                        to: "amitkafe5@gmail.com",
+                        to: "amit.kafe5987@gmail.com",
                         subject: "Security scan successful",
                         body: "<p>Stage 'Security Scan' completed with status ${currentBuild.result}</p><p>Check console output at ${env.BUILD_URL} to view the result.</p>",
                         attachLog: true
